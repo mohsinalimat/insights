@@ -1,38 +1,13 @@
 <template>
-	<div class="mb-3 flex h-7 items-center">
-		<Button icon="chevron-left" class="mr-2" @click="$emit('close')"> </Button>
-		<div class="text-sm tracking-wide text-gray-600">{{ editing ? 'EDIT' : 'ADD' }} FILTER</div>
-	</div>
-	<div class="flex h-[calc(100%-2.75rem)] flex-col space-y-3">
-		<div
-			class="flex h-9 flex-shrink-0 items-center space-x-2 rounded-md bg-gray-100 p-1 text-sm"
-		>
-			<div
-				class="flex h-full flex-1 items-center justify-center rounded font-light"
-				:class="{
-					'bg-white font-normal shadow': filterType == 'simple',
-				}"
-				@click.prevent.stop="filterType = 'simple'"
-			>
-				Simple
-			</div>
-			<div
-				class="flex h-full flex-1 items-center justify-center rounded"
-				:class="{
-					' bg-white font-normal shadow': filterType == 'expression',
-				}"
-				@click.prevent.stop="filterType = 'expression'"
-			>
-				Expression
-			</div>
-		</div>
+	<div class="flex max-w-[24rem] flex-col space-y-2 rounded-md border bg-white p-4 shadow-md">
+		<Tabs :tabs="tabs" @switch="switchTab" />
 		<SimpleFilterPicker
-			v-if="filterType == 'simple'"
+			v-if="activeTab === 'Simple'"
 			:filter="props.filter"
 			@filter-select="(args) => $emit('filter-select', args)"
 		/>
 		<FilterExpressionPicker
-			v-if="filterType == 'expression'"
+			v-if="activeTab === 'Expression'"
 			:filter="props.filter"
 			@filter-select="(args) => $emit('filter-select', args)"
 		/>
@@ -40,13 +15,28 @@
 </template>
 
 <script setup>
+import Tabs from '@/components/Tabs.vue'
 import SimpleFilterPicker from '@/components/Query/Filter/SimpleFilterPicker.vue'
 import FilterExpressionPicker from '@/components/Query/Filter/FilterExpressionPicker.vue'
 
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps(['filter'])
 defineEmits(['filter-select', 'close'])
-const editing = ref(Boolean(props.filter))
-const filterType = ref('simple')
+
+const tabs = ref([
+	{
+		label: 'Simple',
+		active: true,
+	},
+	{
+		label: 'Expression',
+		active: false,
+	},
+])
+const activeTab = computed(() => tabs.value.find((tab) => tab.active).label)
+function switchTab(tab) {
+	tabs.value.forEach((tab) => (tab.active = false))
+	tab.active = true
+}
 </script>

@@ -1,118 +1,130 @@
 <template>
-	<div class="flex h-full w-1/3 flex-col overflow-scroll pr-4 pb-2">
-		<!-- Picker -->
-		<div v-if="!editTable" class="flex flex-1 flex-col">
-			<div
-				v-if="!addingTable"
-				class="sticky top-0 flex items-center justify-between bg-white pb-3 pt-1"
-			>
-				<div class="text-sm tracking-wide text-gray-600">TABLES</div>
+	<div>
+		<div class="space-y-2">
+			<div class="flex items-center justify-between bg-white">
+				<div class="font-semibold text-gray-700">Data</div>
 				<Button icon="plus" @click="addingTable = true"></Button>
 			</div>
-			<div v-if="addingTable" class="mb-4 w-full">
+
+			<!-- Empty List -->
+			<div
+				v-if="query.tables.data?.length == 0"
+				class="flex flex-1 items-center justify-center font-light text-gray-400"
+			>
+				<p>No tables selected</p>
+			</div>
+			<!-- Table List -->
+			<div v-else v-for="(table, idx) in query.tables.data" :key="idx">
+				<Popover :hideOnBlur="false" class="flex space-x-2">
+					<template #target="{ togglePopover, isOpen }">
+						<div class="input-with-pills flex-1">
+							<div class="input-pill">{{ table.label }}</div>
+							<div v-if="table.join" class="input-pill px-1.5">
+								<JoinLeftIcon v-if="table.join.type.value == 'left'" />
+								<JoinRightIcon v-if="table.join.type.value == 'right'" />
+								<JoinInnerIcon v-if="table.join.type.value == 'inner'" />
+								<JoinFullIcon v-if="table.join.type.value == 'full_outer'" />
+							</div>
+							<div v-if="table.join" class="input-pill">
+								{{ table.join.with.label }}
+							</div>
+							<div
+								class="!ml-auto flex items-center px-1 text-gray-500 hover:text-gray-600"
+								@click.prevent.stop="removeTable(table)"
+							>
+								<FeatherIcon name="x" class="h-4 w-4" />
+							</div>
+						</div>
+						<Button
+							class="flex h-9 w-9 items-center justify-center rounded-md bg-gray-100"
+							icon="circle"
+							@click.prevent.stop="
+								() => {
+									editTable = isOpen ? null : table
+									togglePopover()
+								}
+							"
+						>
+						</Button>
+					</template>
+					<template #body="{ togglePopover, isOpen }">
+						<div
+							v-show="isOpen"
+							class="my-2 w-[26rem] space-y-4 rounded-md border bg-white p-4 text-base shadow-md"
+						>
+							<div class="flex space-x-2">
+								<div class="flex w-8 items-center">Join</div>
+								<div class="flex-1">
+									<Input
+										class="h-8"
+										type="text"
+										placeholder="Select a table"
+										v-model="table.table"
+										disabled
+									></Input>
+								</div>
+								<div class="w-[5.5rem]">
+									<Autocomplete
+										v-model="join.type"
+										:options="joinTypeOptions"
+										placeholder="Type"
+									/>
+								</div>
+								<div class="flex-1">
+									<Autocomplete
+										v-model="join.with"
+										:options="joinTableOptions"
+										placeholder="Select a table"
+										@selectOption="onJoinTableSelect"
+									/>
+								</div>
+							</div>
+							<div class="flex space-x-2">
+								<div class="flex w-8 items-center">On</div>
+								<div class="flex-1">
+									<Autocomplete
+										v-model="join.condition"
+										:options="joinConditionOptions"
+										placeholder="Select a condition..."
+									/>
+								</div>
+							</div>
+							<div class="flex items-end justify-end space-x-2">
+								<Button
+									:disabled="!editTable?.join"
+									@click="clearJoin() || togglePopover()"
+								>
+									Clear
+								</Button>
+								<Button
+									appearance="primary"
+									:disabled="!join.with || !join.condition || !join.type"
+									@click="applyJoin() || togglePopover()"
+								>
+									Apply
+								</Button>
+							</div>
+						</div>
+					</template>
+				</Popover>
+			</div>
+			<!-- New Table -->
+			<div v-if="addingTable" class="flex space-x-2">
 				<Autocomplete
+					class="flex-1"
 					ref="tableSearch"
 					v-model="newTable"
 					:options="newTableOptions"
 					placeholder="Select a table..."
-					@selectOption="
-						(table) => {
-							addingTable = false
-							table && query.addTable.submit({ table })
-						}
-					"
+					@selectOption="addNewTable"
 				/>
-			</div>
-			<div
-				v-if="query.tables.data?.length == 0"
-				class="flex flex-1 items-center justify-center rounded-md border-2 border-dashed border-gray-200 text-sm font-light text-gray-400"
-			>
-				<p>No tables selected</p>
-			</div>
 
-			<div v-else class="flex w-full flex-1 select-none flex-col divide-y">
-				<div
-					v-for="(table, idx) in query.tables.data"
-					:key="idx"
-					class="flex h-10 w-full cursor-pointer items-center border-b text-sm text-gray-600 last:border-0 hover:bg-gray-50"
-					@click.prevent.stop="editTable = table"
+				<Button
+					class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100"
+					icon="x"
+					@click.prevent.stop="addingTable = false"
 				>
-					<FeatherIcon name="layout" class="mr-2 h-[14px] w-[14px] text-gray-500" />
-					<span
-						class="overflow-hidden text-ellipsis whitespace-nowrap text-base font-medium"
-					>
-						{{ table.label }}
-					</span>
-					<span v-if="table.join" class="ml-2 text-gray-500">
-						<JoinLeftIcon v-if="table.join.type.value == 'left'" />
-						<JoinRightIcon v-if="table.join.type.value == 'right'" />
-						<JoinInnerIcon v-if="table.join.type.value == 'inner'" />
-						<JoinFullIcon v-if="table.join.type.value == 'full_outer'" />
-					</span>
-					<span
-						v-if="table.join"
-						class="ml-2 overflow-hidden text-ellipsis whitespace-nowrap text-base font-medium"
-					>
-						{{ table.join.with.label }}
-					</span>
-					<span
-						class="ml-auto mr-1 overflow-hidden text-ellipsis whitespace-nowrap font-light text-gray-500"
-					>
-						{{ query.doc.data_source }}
-					</span>
-					<div
-						class="flex items-center px-1 py-0.5 text-gray-500 hover:text-gray-600"
-						@click.prevent.stop="removeTable(table)"
-					>
-						<FeatherIcon name="x" class="h-3 w-3" />
-					</div>
-				</div>
-			</div>
-		</div>
-		<!-- Editor -->
-		<div v-else>
-			<div class="sticky top-0 flex items-center bg-white pb-3 pt-1">
-				<Button icon="chevron-left" class="mr-2" @click="editTable = null"> </Button>
-				<div class="text-sm tracking-wide text-gray-600">JOIN</div>
-			</div>
-			<div class="flex flex-col space-y-3">
-				<div class="flex flex-col space-y-3">
-					<div class="space-y-1 text-sm text-gray-600">
-						<div class="font-light">Type</div>
-						<Autocomplete
-							v-model="join.type"
-							:options="joinTypeOptions"
-							placeholder="Select a type..."
-						/>
-					</div>
-					<div class="space-y-1 text-sm text-gray-600">
-						<div class="font-light">With</div>
-						<Autocomplete
-							v-model="join.with"
-							:options="joinTableOptions"
-							placeholder="Select a table..."
-							@selectOption="onJoinTableSelect"
-						/>
-					</div>
-					<div class="space-y-1 text-sm text-gray-600">
-						<div class="font-light">On</div>
-						<Autocomplete
-							v-model="join.condition"
-							:options="joinConditionOptions"
-							placeholder="Select a condition..."
-						/>
-					</div>
-				</div>
-				<div class="flex justify-end space-x-2">
-					<Button :disabled="!editTable.join" @click="clear_join"> Clear </Button>
-					<Button
-						appearance="primary"
-						:disabled="!join.with || !join.condition || !join.type"
-						@click="applyJoin"
-					>
-						Apply
-					</Button>
-				</div>
+				</Button>
 			</div>
 		</div>
 	</div>
@@ -126,7 +138,7 @@ import JoinFullIcon from '@/components/Icons/JoinFullIcon.vue'
 import Autocomplete from '@/components/Controls/Autocomplete.vue'
 
 import { computed, inject, ref, watch } from 'vue'
-import { isEmptyObj, ellipsis } from '@/utils'
+import { isEmptyObj } from '@/utils'
 
 const query = inject('query')
 
@@ -165,7 +177,7 @@ const joinTypeOptions = ref([
 	{ label: 'Inner', value: 'inner' },
 	{ label: 'Left', value: 'left' },
 ])
-const joinOptions = computed(() => query.fetchJoinOptions.data?.message) // is computed
+const joinOptions = computed(() => query.fetchJoinOptions.data?.message)
 const joinTableOptions = computed(() => {
 	return joinOptions.value?.map(({ label, table }) => {
 		return { label, value: table }
@@ -197,10 +209,14 @@ function applyJoin() {
 	query.updateTable.submit({ table: editTable.value })
 	editTable.value = null
 }
-function clear_join() {
+function clearJoin() {
 	editTable.value.join = ''
 	query.updateTable.submit({ table: editTable.value })
 	editTable.value = null
+}
+function addNewTable(table) {
+	addingTable.value = false
+	table && query.addTable.submit({ table })
 }
 const $notify = inject('$notify')
 function removeTable(table) {

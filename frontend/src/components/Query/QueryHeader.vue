@@ -19,8 +19,12 @@ const updateTitle = (title) => {
 </script>
 
 <template>
-	<div class="flex h-full items-center space-x-2">
-		<EditablePageTitle :title="query.doc.title" @update="updateTitle" />
+	<div class="flex w-full items-center">
+		<EditablePageTitle
+			:title="query.doc.title"
+			@update="updateTitle"
+			class="w-[calc(100%-30px)]"
+		/>
 		<QueryMenu />
 	</div>
 </template>

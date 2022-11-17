@@ -25,7 +25,7 @@ const component = computed(() => {
 </script>
 
 <template>
-	<div class="!mt-0 space-y-2 text-gray-600">
+	<div class="space-y-2 text-gray-600">
 		<div class="text-base font-light text-gray-500">Title</div>
 		<Input type="text" placeholder="Enter a suitable title..." v-model="chart.title" />
 	</div>

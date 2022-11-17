@@ -1,8 +1,8 @@
 <template>
-	<div ref="resultContainer" class="h-1/2">
+	<div ref="resultContainer" class="h-[40%] p-4 pt-1">
 		<!-- Result Header -->
 		<div class="relative flex h-8 items-center">
-			<div class="text-sm tracking-wide text-gray-600">RESULT</div>
+			<div class="font-semibold text-gray-700">Results</div>
 			<div class="flex flex-1 items-center justify-center">
 				<div
 					ref="resizerHandle"
@@ -117,9 +117,9 @@ const isNumberColumn = computed(() => {
 	return query.doc.columns.map((c) => FIELDTYPES.NUMBER.includes(c.type))
 })
 
-watch(needsExecution, (newVal, oldVal) => newVal && !oldVal && query.execute(), {
-	immediate: true,
-})
+// watch(needsExecution, (newVal, oldVal) => newVal && !oldVal && query.execute(), {
+// 	immediate: true,
+// })
 
 const executionTime = computed(() => {
 	const rounded = Math.round(query.doc.execution_time * 100) / 100

@@ -1,15 +1,13 @@
 <template>
 	<div class="relative flex w-full">
-		<div class="z-[5] flex w-full items-center">
-			<div
-				ref="operatorRef"
-				class="z-[5] mr-2 flex h-6 w-6 flex-shrink-0 cursor-pointer items-center justify-center rounded-full border border-gray-300 bg-white font-light hover:border-blue-300 hover:font-normal hover:text-blue-500"
-				@click.prevent.stop="$emit('toggle-operator', { level, position })"
-			>
-				{{ operator == '&&' ? '&' : 'or' }}
-			</div>
-			<div class="flex flex-1 flex-col space-y-2">
-				<div :key="idx" ref="conditionRefs" v-for="(condition, idx) in conditions">
+		<div class="z-[5] flex w-full">
+			<div class="flex w-full flex-col space-y-2">
+				<div
+					class="flex w-full"
+					:key="idx"
+					ref="conditionRefs"
+					v-for="(condition, idx) in conditions"
+				>
 					<LogicalExpression
 						v-if="condition.type == 'LogicalExpression'"
 						:expression="condition"
@@ -18,27 +16,41 @@
 						@remove-filter="$emit('remove-filter', $event)"
 						@toggle-operator="$emit('toggle-operator', $event)"
 					/>
-					<Expression
-						v-else
-						:expression="condition"
-						@edit="
-							$emit('edit-filter', {
-								condition,
-								level,
-								position,
-								idx,
-							})
-						"
-						@remove="$emit('remove-filter', { level, position, idx })"
-					/>
+					<div v-else class="flex w-full">
+						<div
+							v-if="level != 1 && idx == 1"
+							ref="operatorRef"
+							class="input-with-pills z-[5] mr-2 w-fit"
+							@click.prevent.stop="$emit('toggle-operator', { level, position })"
+						>
+							<span class="input-pill">
+								{{ operator == '&&' ? '&' : 'or' }}
+							</span>
+						</div>
+
+						<Expression
+							class="flex-1"
+							:expression="condition"
+							@edit="
+								$emit('edit-filter', {
+									condition,
+									level,
+									position,
+									idx,
+								})
+							"
+							@remove="$emit('remove-filter', { level, position, idx })"
+						/>
+					</div>
 				</div>
-				<div
+				<!-- <div
+					v-if="level != 1"
 					ref="addConditionRef"
-					class="!-mt-0.5 !-mb-2 flex h-9 cursor-pointer items-center text-sm font-light text-gray-400 hover:text-gray-500"
+					class="ml-12 flex cursor-pointer items-center text-sm font-light text-gray-400 hover:text-gray-500"
 					@click.prevent.stop="$emit('add-filter', { level, position })"
 				>
 					+ {{ operator == '&&' ? 'and' : 'or' }} condition
-				</div>
+				</div> -->
 			</div>
 		</div>
 		<div class="absolute top-0 left-0 z-0 h-full w-full">
@@ -84,19 +96,15 @@ const connectorsRef = ref(null)
 const conditionRefs = ref([])
 
 function draw_connectors() {
-	if (
-		!connectorsRef.value ||
-		!addConditionRef.value ||
-		!operatorRef.value ||
-		!conditionRefs.value?.length
-	) {
+	if (!connectorsRef.value || !operatorRef.value || !conditionRefs.value?.length) {
 		return
 	}
 	connectorsRef.value.innerHTML = ''
 	conditionRefs.value.forEach((condition) => {
-		add_connector(operatorRef.value, condition)
+		debugger
+		add_connector(operatorRef.value[0], condition)
 	})
-	add_connector(operatorRef.value, addConditionRef.value, true)
+	// add_connector(operatorRef.value[0], addConditionRef.value, true)
 }
 function add_connector(parent_node, child_node, dotted = false) {
 	let path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
@@ -122,7 +130,7 @@ function add_connector(parent_node, child_node, dotted = false) {
 	connectorsRef.value.appendChild(path)
 }
 function get_connector(pos_parent_center, pos_child_left) {
-	if (Math.abs(pos_parent_center.y - pos_child_left.y) < 3) {
+	if (Math.abs(pos_parent_center.y - pos_child_left.y) < -1) {
 		// don't add arcs if it's a straight line
 		return `M${pos_parent_center.x},${pos_parent_center.y} L${pos_child_left.x},${pos_child_left.y}`
 	} else {
@@ -140,7 +148,6 @@ function get_connector(pos_parent_center, pos_child_left) {
 			arc_1 = 'a5,5 1 0 0 5,5 '
 			offset = -5
 		}
-
 		return (
 			`M${pos_parent_center.x},${pos_parent_center.y} ` +
 			`L${pos_parent_center.x},${pos_child_left.y + offset} ` +

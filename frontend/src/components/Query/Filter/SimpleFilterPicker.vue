@@ -1,25 +1,21 @@
 <template>
-	<div class="flex flex-col space-y-3">
-		<div class="space-y-1 text-sm text-gray-600">
-			<div class="font-light">Column</div>
+	<div class="flex flex-col space-y-2">
+		<div class="flex space-x-2">
 			<Autocomplete
+				class="flex-1"
 				v-model="filter.column"
 				:options="columnOptions"
-				placeholder="Select a column..."
+				placeholder="Column"
 			/>
-		</div>
-		<div class="space-y-1 text-sm text-gray-600">
-			<div class="font-light">Operator</div>
 			<Autocomplete
+				class="flex-1"
 				v-model="filter.operator"
 				:options="operatorOptions"
-				placeholder="Select operator..."
+				placeholder="Operator"
 			/>
-		</div>
-		<div class="space-y-1 text-sm text-gray-600">
-			<div class="font-light">Value</div>
 			<Autocomplete
 				v-if="showValueOptions"
+				class="flex-1"
 				v-model="filter.value"
 				:options="valueOptions"
 				:placeholder="valuePlaceholder"
@@ -27,12 +23,14 @@
 			/>
 			<TimespanPicker
 				v-else-if="showTimespanPicker"
+				class="flex-1"
 				id="value"
 				v-model="filter.value"
 				:placeholder="valuePlaceholder"
 			/>
 			<ListPicker
 				v-else-if="showListPicker"
+				class="flex-1"
 				v-model="filter.value.value"
 				:options="valueOptions"
 				:placeholder="valuePlaceholder"
@@ -40,6 +38,7 @@
 			/>
 			<DatePicker
 				v-else-if="showDatePicker"
+				class="flex-1"
 				id="value"
 				:value="filter.value.value"
 				:placeholder="valuePlaceholder"
@@ -58,7 +57,7 @@
 				type="text"
 				v-model="filter.value.value"
 				:placeholder="valuePlaceholder"
-				class="form-input block h-8 w-full select-none rounded-md placeholder-gray-500 placeholder:text-sm"
+				class="form-input block h-8 w-full flex-1 select-none rounded-md placeholder-gray-500 placeholder:text-sm"
 			/>
 		</div>
 		<div class="flex justify-end">
@@ -142,18 +141,18 @@ const valueOptions = computed(() => {
 
 const valuePlaceholder = computed(() => {
 	if (showDatePicker.value) {
-		return 'Select a date...'
+		return 'Date...'
 	}
 	if (isEmptyObj(filter.operator)) {
-		return 'Type a value...'
+		return 'Value'
 	}
 	if (filter.operator?.value == 'between') {
-		return 'Type two comma separated values...'
+		return 'Date'
 	}
 	if (filter.operator?.value == 'in' || filter.operator?.value == 'not_in') {
-		return 'Select one or more values...'
+		return 'Select'
 	}
-	return 'Type a value...'
+	return 'Value'
 })
 
 const applyDisabled = computed(() => isEmptyObj(filter.column, filter.operator, filter.value))

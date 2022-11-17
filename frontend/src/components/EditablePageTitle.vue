@@ -15,10 +15,13 @@ const editing = ref(false)
 </script>
 
 <template>
-	<div class="flex h-full items-center space-x-2">
-		<div v-if="!editing" class="mr-2 py-1 text-3xl font-medium">
+	<div class="flex w-full items-center space-x-2">
+		<span
+			v-if="!editing"
+			class="flex overflow-hidden text-ellipsis whitespace-nowrap py-1 text-3xl font-medium"
+		>
 			{{ title }}
-		</div>
+		</span>
 		<Button
 			v-if="!editing"
 			icon="edit"

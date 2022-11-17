@@ -1,24 +1,7 @@
 <template>
-	<div class="flex h-full items-start pt-2">
-		<div class="flex h-full w-[18rem] flex-col pr-4">
-			<div class="mb-3">
-				<div class="mb-2 text-sm tracking-wide text-gray-600">CHART TYPE</div>
-				<ChartSelector
-					v-if="types?.length > 0"
-					:chartTypes="types"
-					:invalidTypes="invalidTypes"
-					:currentType="chart.type"
-					@chartTypeChange="setVizType"
-				/>
-			</div>
-
-			<div class="flex-1 space-y-3 overflow-y-scroll">
-				<div class="mb-2 text-sm tracking-wide text-gray-600">CHART OPTIONS</div>
-				<ChartOptions :chartType="chart.type" />
-			</div>
-		</div>
-		<div class="flex h-full w-[calc(100%-18rem)] flex-col space-y-4">
-			<div class="flex space-x-2">
+	<div class="flex h-[60%] items-start p-4">
+		<div class="flex h-full w-full flex-col space-y-4">
+			<div class="ml-auto flex space-x-2">
 				<Button
 					appearance="white"
 					@click="showDashboardDialog = true"
@@ -46,7 +29,7 @@
 					Save
 				</Button>
 			</div>
-			<div class="flex max-h-[30rem] flex-1 items-center justify-center">
+			<div class="flex h-[calc(100%-2rem)] items-center justify-center">
 				<component
 					v-if="chart.component && chart.componentProps"
 					ref="eChart"
@@ -84,33 +67,14 @@
 </template>
 
 <script setup>
-import ChartSelector from '@/components/Query/Visualize/ChartSelector.vue'
-import ChartOptions from '@/components/Query/Visualize/ChartOptions.vue'
-
-import { computed, inject, nextTick, provide, ref, watch } from 'vue'
-import { useChart, types } from '@/utils/charts'
+import { computed, inject, nextTick, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
 import Autocomplete from '@/components/Controls/Autocomplete.vue'
 import { getDashboardOptions, createDashboard } from '@/utils/dashboard.js'
 
 const query = inject('query')
-const chartName = query.charts[0]
-const chart = useChart({
-	chartID: chartName,
-	data: query.results.formattedResult,
-})
-provide('chart', chart)
-
-const invalidTypes = computed(() => {
-	// TODO: change based on data
-	return ['Funnel', 'Row']
-})
-const setVizType = (type) => {
-	if (!invalidTypes.value.includes(type)) {
-		chart.setType(type)
-	}
-}
+const chart = computed(() => query.chart)
 
 const $notify = inject('$notify')
 const saveChart = () => {
@@ -120,7 +84,7 @@ const saveChart = () => {
 			appearance: 'success',
 		})
 	}
-	chart.updateDoc({ onSuccess })
+	chart.value.updateDoc({ onSuccess })
 }
 
 const showDashboardDialog = ref(false)
@@ -130,7 +94,7 @@ const $autocomplete = ref(null)
 watch(showDashboardDialog, async (val) => {
 	if (val) {
 		await nextTick()
-		getDashboardOptions(chartName).then((options) => {
+		getDashboardOptions(chart.value.name).then((options) => {
 			dashboardOptions.value = options
 			setTimeout(() => {
 				$autocomplete.value.input.$el.blur()
@@ -139,7 +103,7 @@ watch(showDashboardDialog, async (val) => {
 		})
 	}
 })
-const addingToDashboard = computed(() => chart.addToDashboard?.loading)
+const addingToDashboard = computed(() => chart.value.addToDashboard?.loading)
 function addToDashboard() {
 	const onSuccess = () => {
 		$notify({
@@ -149,9 +113,9 @@ function addToDashboard() {
 		showDashboardDialog.value = false
 	}
 	// TODO: move default dimensions to insights_dashboard.py
-	const defaultDimensions = chart.type == 'Number' ? { w: 4, h: 4 } : { w: 8, h: 8 }
+	const defaultDimensions = chart.value.type == 'Number' ? { w: 4, h: 4 } : { w: 8, h: 8 }
 	const dashboardName = toDashboard.value.value
-	chart.addToDashboard(dashboardName, defaultDimensions, { onSuccess })
+	chart.value.addToDashboard(dashboardName, defaultDimensions, { onSuccess })
 }
 
 const router = useRouter()

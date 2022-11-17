@@ -1,30 +1,52 @@
 <template>
-	<div class="flex h-full w-1/3 flex-col pl-4 pb-2">
-		<div v-if="!pickingFilter" class="flex items-center justify-between bg-white pb-3 pt-1">
-			<div class="text-sm tracking-wide text-gray-600">FILTERS</div>
+	<div class="">
+		<div class="flex items-center justify-between bg-white pb-2">
+			<div class="font-semibold text-gray-700">Filter</div>
 			<Button icon="plus" @click="pickingFilter = true"></Button>
 		</div>
-		<div class="h-full">
-			<div
-				v-if="!pickingFilter && (!filters.conditions || filters.conditions.length == 0)"
-				class="flex h-full w-full items-center justify-center rounded-md border-2 border-dashed border-gray-200 text-sm font-light text-gray-400"
-			>
-				<p>No filters added</p>
-			</div>
-			<LogicalExpression
-				v-if="!pickingFilter && filters.conditions?.length > 0"
-				:expression="filters"
-				@add-filter="showFilterPicker"
-				@edit-filter="showFilterPicker"
-				@remove-filter="removeFilter"
-				@toggle-operator="toggleOperator"
-			/>
-			<FilterPicker
-				v-if="pickingFilter"
-				@close="pickingFilter = false"
-				@filter-select="onFilterSelect"
-				:filter="editFilter"
-			/>
+		<div
+			v-if="!pickingFilter && (!filters.conditions || filters.conditions.length == 0)"
+			class="flex items-center justify-center font-light text-gray-400"
+		>
+			<p>No filters added</p>
+		</div>
+		<LogicalExpression
+			v-if="filters.conditions?.length > 0"
+			:expression="filters"
+			@add-filter="showFilterPicker"
+			@edit-filter="showFilterPicker"
+			@remove-filter="removeFilter"
+			@toggle-operator="toggleOperator"
+		/>
+		<div v-if="pickingFilter" class="mt-2">
+			<Popover :hideOnBlur="false" class="w-full" placement="right-end">
+				<template #target="{ togglePopover, isOpen }">
+					<div class="flex w-full space-x-2">
+						<Input
+							type="text"
+							readonly
+							@click="togglePopover()"
+							class="h-8 flex-1"
+							placeholder="New filter..."
+						></Input>
+						<Button
+							class="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100"
+							icon="x"
+							@click.prevent.stop="pickingFilter = false"
+						>
+						</Button>
+					</div>
+				</template>
+				<template #body="{ togglePopover, isOpen }">
+					<div class="ml-2">
+						<FilterPicker
+							@close="pickingFilter = false"
+							@filter-select="onFilterSelect"
+							:filter="editFilter"
+						/>
+					</div>
+				</template>
+			</Popover>
 		</div>
 	</div>
 </template>

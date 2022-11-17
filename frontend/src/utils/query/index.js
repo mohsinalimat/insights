@@ -5,6 +5,7 @@ import { useQueryColumns } from '@/utils/query/columns'
 import { useQueryFilters } from '@/utils/query/filters'
 import { useQueryResults } from '@/utils/query/results'
 import { createToast } from '@/utils/toasts'
+import { useChart } from '@/utils/charts'
 
 const API_METHODS = {
 	run: 'run',
@@ -44,8 +45,12 @@ export function useQuery(name) {
 	query.filters = useQueryFilters(query)
 	query.results = useQueryResults(query)
 
-	query.getCharts.submit()
-	query.charts = computed(() => query.getCharts.data?.message)
+	query.getCharts.submit().then((res) => {
+		query.chart = useChart({
+			chartID: res.message[0],
+			data: query.results.formattedResult,
+		})
+	})
 	query.debouncedRun = debounce(query.run.submit, 500)
 	query.execute = () => {
 		return query.debouncedRun(null, {

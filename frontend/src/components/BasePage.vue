@@ -1,5 +1,5 @@
 <template>
-	<div class="flex h-[calc(100%)] min-h-[38rem] flex-col bg-white p-5">
+	<div class="flex h-full min-h-[38rem] flex-col p-4">
 		<!-- 1.25rem -->
 		<Breadcrumbs v-if="routes.length > 1" :routes="routes" />
 		<header class="flex h-10 flex-shrink-0 overflow-visible">

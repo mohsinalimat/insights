@@ -1,20 +1,20 @@
 <template>
-	<BasePage v-if="query.doc">
-		<template #header>
-			<!-- Height 2.5 rem -->
-			<div class="flex flex-1 items-center justify-between">
-				<QueryHeader />
-				<Tabs class="w-40" :tabs="tabs" @switch="switchTab" />
-			</div>
-		</template>
-
-		<template #main>
-			<div class="flex h-full w-full flex-col rounded-md">
+	<div class="flex h-full min-h-[38rem]" v-if="query.doc">
+		<div class="w-80 border-r p-4">
+			<QueryHeader />
+			<hr class="my-4" />
+			<Tabs :tabs="tabs" @switch="switchTab" />
+			<hr class="my-4" />
+			<div class="h-[calc(100%-10rem)]">
 				<QueryBuilder v-if="activeTab == 'Build'" />
-				<QueryVisualizer v-if="activeTab == 'Visualize'" />
+				<Sidebar v-if="activeTab == 'Visualize'" />
 			</div>
-		</template>
-	</BasePage>
+		</div>
+		<div class="w-[calc(100%-20rem)]">
+			<QueryVisualizer v-if="query.chart" />
+			<QueryResult />
+		</div>
+	</div>
 </template>
 
 <script setup>
@@ -25,6 +25,8 @@ import Tabs from '@/components/Tabs.vue'
 import QueryHeader from '@/components/Query/QueryHeader.vue'
 import QueryBuilder from '@/components/Query/QueryBuilder.vue'
 import QueryVisualizer from '@/components/Query/Visualize/QueryVisualizer.vue'
+import Sidebar from '@/components/Query/Visualize/Sidebar.vue'
+import QueryResult from '@/components/Query/Result/QueryResult.vue'
 
 import { useQuery } from '@/utils/query'
 import { updateDocumentTitle } from '@/utils'

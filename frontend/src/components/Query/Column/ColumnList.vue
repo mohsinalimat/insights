@@ -18,7 +18,7 @@
 		>
 			<template #item="{ element: column }">
 				<div
-					class="flex h-10 w-full cursor-pointer items-center border-b text-sm text-gray-600 last:border-0 hover:bg-gray-50"
+					class="mb-2 flex h-9 w-full items-center space-x-1"
 					@click.prevent.stop="
 						() => {
 							$emit('edit-column', column)
@@ -28,29 +28,19 @@
 					"
 				>
 					<DragHandleIcon
-						class="mr-1 -ml-1 h-4 w-4 rotate-90 cursor-grab self-center text-gray-400"
+						class="h-4 w-4 rotate-90 cursor-grab self-center text-gray-400"
 					/>
-					<span
-						v-if="column.aggregation"
-						class="my-0 mr-2 select-none whitespace-nowrap rounded border border-orange-200 px-1 py-0.5 text-xs text-orange-400/80"
-					>
-						{{ column.aggregation }}
-					</span>
-					<span
-						class="overflow-hidden text-ellipsis whitespace-nowrap text-base font-medium"
-					>
-						{{ column.label }}
-					</span>
-					<span
-						class="ml-auto mr-1 overflow-hidden text-ellipsis whitespace-nowrap font-light text-gray-500"
-					>
-						{{ column.is_expression ? 'Expression' : ellipsis(column.table_label, 12) }}
-					</span>
-					<div
-						class="flex items-center px-1 py-0.5 text-gray-500 hover:text-gray-600"
-						@click.prevent.stop="query.removeColumn.submit({ column })"
-					>
-						<FeatherIcon name="x" class="h-3 w-3" />
+					<div class="input-with-pills flex-1">
+						<div v-if="column.aggregation" class="input-pill text-orange-400">
+							{{ column.aggregation }}
+						</div>
+						<div class="input-pill">{{ column.label }}</div>
+						<div
+							class="!ml-auto flex items-center px-1 text-gray-500 hover:text-gray-600"
+							@click.prevent.stop="query.removeColumn.submit({ column })"
+						>
+							<FeatherIcon name="x" class="h-4 w-4" />
+						</div>
 					</div>
 				</div>
 			</template>
