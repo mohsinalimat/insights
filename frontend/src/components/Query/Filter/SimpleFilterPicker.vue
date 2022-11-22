@@ -1,5 +1,5 @@
 <template>
-	<div class="flex flex-col space-y-2">
+	<div class="qflex-col flex space-y-2">
 		<div class="flex space-x-2">
 			<Autocomplete
 				class="flex-1"

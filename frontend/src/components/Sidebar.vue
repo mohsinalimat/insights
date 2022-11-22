@@ -1,7 +1,7 @@
 <template>
 	<div
 		class="inset-y-0 flex flex-col border-r"
-		:class="[compact ? 'w-fit' : 'w-60']"
+		:class="[compact ? 'w-12' : 'w-60']"
 		v-if="currentRoute"
 	>
 		<div class="flex flex-grow flex-col overflow-y-auto p-4 pt-2 pl-4 pr-2">

@@ -14,10 +14,10 @@
 
 
 .input-with-pills {
-	@apply flex h-9 cursor-pointer rounded-md bg-gray-100 p-0.5
+	@apply flex h-fit cursor-pointer rounded-md bg-gray-100 p-0.5 flex-wrap pr-5
 }
 .input-pill {
-	@apply m-0.5 flex items-center rounded-md bg-white px-2 shadow overflow-hidden text-ellipsis whitespace-nowrap
+	@apply m-0.5 flex h-7 items-center rounded-md bg-white px-2 shadow overflow-hidden text-ellipsis whitespace-nowrap
 }
 
 .font-code {

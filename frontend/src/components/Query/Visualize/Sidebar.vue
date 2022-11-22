@@ -1,5 +1,5 @@
 <template>
-	<div class="flex h-full w-[18rem] flex-col pr-4">
+	<div class="flex h-full w-full flex-col">
 		<div class="mb-4 space-y-3">
 			<div class="font-semibold text-gray-700">Chart Type</div>
 			<ChartSelector

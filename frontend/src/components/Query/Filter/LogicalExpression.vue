@@ -29,7 +29,6 @@
 						</div>
 
 						<Expression
-							class="flex-1"
 							:expression="condition"
 							@edit="
 								$emit('edit-filter', {

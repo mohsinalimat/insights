@@ -6,13 +6,19 @@
 				<Button icon="plus" @click="addingColumn = true"></Button>
 			</div>
 			<div class="h-[calc(100%-2.5rem)] w-full">
+				<div
+					v-if="!query.columns?.data.length && !addingColumn"
+					class="flex items-center justify-center font-light text-gray-400"
+				>
+					<p>No columns added</p>
+				</div>
 				<ColumnList
 					@edit-column="(column) => ([editColumn, editingColumn] = [column, true])"
 				></ColumnList>
 			</div>
 		</div>
 		<div v-if="addingColumn">
-			<Popover :hideOnBlur="false" class="w-full" placement="right-end">
+			<Popover :hideOnBlur="false" class="w-full" placement="right-start">
 				<template #target="{ togglePopover, isOpen }">
 					<div class="flex w-full space-x-2">
 						<DragHandleIcon
@@ -33,14 +39,13 @@
 						</Button>
 					</div>
 				</template>
-				<template #body="{ togglePopover, isOpen }">
+				<template #body>
 					<div class="ml-2">
 						<ColumnPicker @close="addingColumn = false" />
 					</div>
 				</template>
 			</Popover>
 		</div>
-		<ColumnEditor v-if="editingColumn" @close="editingColumn = false" :column="editColumn" />
 	</div>
 </template>
 
@@ -48,7 +53,6 @@
 import DragHandleIcon from '@/components/Icons/DragHandleIcon.vue'
 import ColumnList from '@/components/Query/Column/ColumnList.vue'
 import ColumnPicker from '@/components/Query/Column/ColumnPicker.vue'
-import ColumnEditor from '@/components/Query/Column/ColumnEditor.vue'
 
 import { inject, ref } from 'vue'
 

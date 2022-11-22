@@ -1,5 +1,5 @@
 <template>
-	<div ref="resultContainer" class="h-[40%] p-4 pt-1">
+	<div ref="resultContainer" class="h-[40%] w-full p-4 pt-1">
 		<!-- Result Header -->
 		<div class="relative flex h-8 items-center">
 			<div class="font-semibold text-gray-700">Results</div>

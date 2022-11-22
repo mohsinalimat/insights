@@ -36,6 +36,12 @@
 					:is="chart.component"
 					v-bind="chart.componentProps"
 				></component>
+				<div
+					v-else
+					class="flex h-full w-full items-center justify-center rounded-md border-2 border-dashed font-light text-gray-400"
+				>
+					Select a chart type to visualize your query
+				</div>
 			</div>
 		</div>
 	</div>
@@ -74,7 +80,7 @@ import Autocomplete from '@/components/Controls/Autocomplete.vue'
 import { getDashboardOptions, createDashboard } from '@/utils/dashboard.js'
 
 const query = inject('query')
-const chart = computed(() => query.chart)
+const chart = query.chart
 
 const $notify = inject('$notify')
 const saveChart = () => {
@@ -84,7 +90,7 @@ const saveChart = () => {
 			appearance: 'success',
 		})
 	}
-	chart.value.updateDoc({ onSuccess })
+	chart.updateDoc({ onSuccess })
 }
 
 const showDashboardDialog = ref(false)
@@ -94,7 +100,7 @@ const $autocomplete = ref(null)
 watch(showDashboardDialog, async (val) => {
 	if (val) {
 		await nextTick()
-		getDashboardOptions(chart.value.name).then((options) => {
+		getDashboardOptions(chart.name).then((options) => {
 			dashboardOptions.value = options
 			setTimeout(() => {
 				$autocomplete.value.input.$el.blur()
@@ -103,7 +109,7 @@ watch(showDashboardDialog, async (val) => {
 		})
 	}
 })
-const addingToDashboard = computed(() => chart.value.addToDashboard?.loading)
+const addingToDashboard = computed(() => chart.addToDashboard?.loading)
 function addToDashboard() {
 	const onSuccess = () => {
 		$notify({
@@ -113,9 +119,9 @@ function addToDashboard() {
 		showDashboardDialog.value = false
 	}
 	// TODO: move default dimensions to insights_dashboard.py
-	const defaultDimensions = chart.value.type == 'Number' ? { w: 4, h: 4 } : { w: 8, h: 8 }
+	const defaultDimensions = chart.type == 'Number' ? { w: 4, h: 4 } : { w: 8, h: 8 }
 	const dashboardName = toDashboard.value.value
-	chart.value.addToDashboard(dashboardName, defaultDimensions, { onSuccess })
+	chart.addToDashboard(dashboardName, defaultDimensions, { onSuccess })
 }
 
 const router = useRouter()

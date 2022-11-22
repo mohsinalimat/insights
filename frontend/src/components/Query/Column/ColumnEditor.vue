@@ -1,27 +1,29 @@
 <template>
-	<div class="mb-4 flex h-7 items-center">
-		<Button icon="chevron-left" class="mr-2" @click="$emit('close')"> </Button>
-		<div class="text-sm uppercase tracking-wide text-gray-600">Edit {{ columnType }}</div>
-	</div>
-	<div class="flex flex-col space-y-3">
-		<MetricPicker
-			v-if="columnType == 'Metric'"
-			:column="props.column"
-			@column-select="editColumn"
-			@close="$emit('close')"
-		/>
-		<DimensionPicker
-			v-if="columnType == 'Dimension'"
-			:column="props.column"
-			@column-select="editColumn"
-			@close="$emit('close')"
-		/>
-		<ColumnExpressionPicker
-			v-if="columnType == 'Expression'"
-			:column="props.column"
-			@column-select="editColumn"
-			@close="$emit('close')"
-		/>
+	<div class="flex w-[22rem] flex-col space-y-2 rounded-md border bg-white p-4 shadow-md">
+		<div class="flex h-7 items-center justify-between">
+			<div class="font-semibold text-gray-700">Edit {{ columnType }}</div>
+			<Button icon="x" @click="$emit('close')"> </Button>
+		</div>
+		<div class="flex flex-col space-y-3">
+			<MetricPicker
+				v-if="columnType == 'Metric'"
+				:column="props.column"
+				@column-select="editColumn"
+				@close="$emit('close')"
+			/>
+			<DimensionPicker
+				v-if="columnType == 'Dimension'"
+				:column="props.column"
+				@column-select="editColumn"
+				@close="$emit('close')"
+			/>
+			<ColumnExpressionPicker
+				v-if="columnType == 'Expression'"
+				:column="props.column"
+				@column-select="editColumn"
+				@close="$emit('close')"
+			/>
+		</div>
 	</div>
 </template>
 

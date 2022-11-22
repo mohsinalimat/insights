@@ -1,5 +1,5 @@
 <template>
-	<div class="flex max-w-[24rem] flex-col space-y-2 rounded-md border bg-white p-4 shadow-md">
+	<div class="flex w-[24rem] flex-col space-y-2 rounded-md border bg-white p-4 shadow-md">
 		<Tabs :tabs="tabs" @switch="switchTab" />
 		<SimpleFilterPicker
 			v-if="activeTab === 'Simple'"

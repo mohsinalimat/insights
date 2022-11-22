@@ -19,7 +19,7 @@
 			@toggle-operator="toggleOperator"
 		/>
 		<div v-if="pickingFilter" class="mt-2">
-			<Popover :hideOnBlur="false" class="w-full" placement="right-end">
+			<Popover :hideOnBlur="false" class="w-full" placement="right-start">
 				<template #target="{ togglePopover, isOpen }">
 					<div class="flex w-full space-x-2">
 						<Input

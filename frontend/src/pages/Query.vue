@@ -1,6 +1,6 @@
 <template>
 	<div class="flex h-full min-h-[38rem]" v-if="query.doc">
-		<div class="w-80 border-r p-4">
+		<div class="w-96 border-r p-4">
 			<QueryHeader />
 			<hr class="my-4" />
 			<Tabs :tabs="tabs" @switch="switchTab" />
@@ -10,7 +10,7 @@
 				<Sidebar v-if="activeTab == 'Visualize'" />
 			</div>
 		</div>
-		<div class="w-[calc(100%-20rem)]">
+		<div class="w-[calc(100%-24rem)]">
 			<QueryVisualizer v-if="query.chart" />
 			<QueryResult />
 		</div>
@@ -18,8 +18,6 @@
 </template>
 
 <script setup>
-import BasePage from '@/components/BasePage.vue'
-
 import Tabs from '@/components/Tabs.vue'
 
 import QueryHeader from '@/components/Query/QueryHeader.vue'

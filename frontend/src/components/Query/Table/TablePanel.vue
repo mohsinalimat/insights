@@ -8,7 +8,7 @@
 
 			<!-- Empty List -->
 			<div
-				v-if="query.tables.data?.length == 0"
+				v-if="!query.tables.data?.length && !addingTable"
 				class="flex flex-1 items-center justify-center font-light text-gray-400"
 			>
 				<p>No tables selected</p>
@@ -17,7 +17,7 @@
 			<div v-else v-for="(table, idx) in query.tables.data" :key="idx">
 				<Popover :hideOnBlur="false" class="flex space-x-2">
 					<template #target="{ togglePopover, isOpen }">
-						<div class="input-with-pills flex-1">
+						<div class="input-with-pills relative flex-1">
 							<div class="input-pill">{{ table.label }}</div>
 							<div v-if="table.join" class="input-pill px-1.5">
 								<JoinLeftIcon v-if="table.join.type.value == 'left'" />
@@ -29,7 +29,7 @@
 								{{ table.join.with.label }}
 							</div>
 							<div
-								class="!ml-auto flex items-center px-1 text-gray-500 hover:text-gray-600"
+								class="absolute right-0 flex items-center p-2 text-gray-500 hover:text-gray-600"
 								@click.prevent.stop="removeTable(table)"
 							>
 								<FeatherIcon name="x" class="h-4 w-4" />
@@ -89,20 +89,25 @@
 									/>
 								</div>
 							</div>
-							<div class="flex items-end justify-end space-x-2">
-								<Button
-									:disabled="!editTable?.join"
-									@click="clearJoin() || togglePopover()"
-								>
-									Clear
-								</Button>
-								<Button
-									appearance="primary"
-									:disabled="!join.with || !join.condition || !join.type"
-									@click="applyJoin() || togglePopover()"
-								>
-									Apply
-								</Button>
+							<div class="flex justify-between space-x-2">
+								<div class="flex items-end justify-end space-x-2">
+									<Button @click="togglePopover(false)"> Close </Button>
+								</div>
+								<div class="flex items-end justify-end space-x-2">
+									<Button
+										:disabled="!editTable?.join"
+										@click="clearJoin() || togglePopover()"
+									>
+										Clear
+									</Button>
+									<Button
+										appearance="primary"
+										:disabled="!join.with || !join.condition || !join.type"
+										@click="applyJoin() || togglePopover()"
+									>
+										Apply
+									</Button>
+								</div>
 							</div>
 						</div>
 					</template>
@@ -200,7 +205,7 @@ const joinConditionOptions = computed(() => {
 function onJoinTableSelect(option) {
 	join.value.with = option
 	join.value.condition = {}
-	if (joinConditionOptions.value.length == 1) {
+	if (joinConditionOptions.value.length > 1) {
 		join.value.condition = joinConditionOptions.value[0]
 	}
 }
