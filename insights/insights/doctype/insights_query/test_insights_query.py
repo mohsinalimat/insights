@@ -68,6 +68,77 @@ class TestInsightsQuery(FrappeTestCase):
 
         self.assertEqual(len(json.loads(query.result)), 11)
 
+    def test_pivot_transform(self):
+        frappe.db.delete("ToDo")
+        reference_types = ["User", "Report", "Error Log", "Server Script"]
+        for i in range(10):
+            todo = frappe.get_doc(
+                {
+                    "doctype": "ToDo",
+                    "description": f"Test {i}",
+                    "status": "Open" if i % 2 == 0 else "Closed",
+                    "reference_type": reference_types[i % 4],
+                }
+            )
+            todo.insert()
+        frappe.db.commit()
+
+        query = frappe.get_doc(test_records[3])
+        query.data_source = self.data_source
+        query.save()
+        query.build_and_execute()
+        result = json.loads(query.result)
+        self.assertEqual(len(result), 5)
+        self.assertEqual(len(result[0]), 3)
+
+        query.add_transform(
+            "Pivot", {"index": "status", "column": "reference_type", "value": "*"}
+        )
+        result = json.loads(query.result)
+        self.assertEqual(len(result), 3)
+        self.assertEqual(len(result[0]), 5)
+
+    def test_cumulative_count(self):
+        frappe.db.delete("ToDo")
+        for i in range(10):
+            todo = frappe.get_doc(
+                {
+                    "doctype": "ToDo",
+                    "description": f"Test {i}",
+                    "status": "Open",
+                    "date": frappe.utils.add_days(frappe.utils.nowdate(), i),
+                }
+            )
+            todo.insert()
+        frappe.db.commit()
+
+        # create an insights query to get the count of todos by due date
+        query = frappe.get_doc(test_records[1])
+        query.data_source = self.data_source
+        query.append(
+            "columns",
+            {
+                "column": "*",
+                "type": "Integer",
+                "table": "tabToDo",
+                "table_label": "ToDo",
+                "label": "Cumulative Count",
+                "aggregation": "Cumulative Count",
+            },
+        )
+        query.save()
+        query.build_and_execute()
+        query.save()
+        result = json.loads(query.result)
+        self.assertEqual(len(result), 11)
+        self.assertEqual(result[-1][2], 10)
+
+
+class TestInsightsQueryBuilder(FrappeTestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.data_source = "Site DB"
+
     def test_no_arg_function(self):
         query = frappe.get_doc(test_records[2])
         query.data_source = self.data_source
@@ -236,7 +307,7 @@ def make_string(value):
     }
 
 
-class TestInsightsQueryWithSQLite(TestInsightsQuery):
+class TestInsightsQueryBuilderWithSQLite(TestInsightsQueryBuilder):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.data_source = "Test SQLite DB"

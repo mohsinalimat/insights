@@ -38,6 +38,7 @@ export function useQueryResults(query) {
 }
 
 function applyColumnFormatOption(formatOption, cell) {
+	if (!formatOption) return cell
 	if (formatOption.prefix) {
 		return `${formatOption.prefix} ${cell}`
 	}
@@ -55,7 +56,7 @@ export function getFormattedResult(data, columns) {
 		const _data = unref(data)
 		const _columns = unref(columns)
 
-		if (!_data || _data.length == 0) return []
+		if (!_data || !_data.length) return []
 
 		const columnTypes = _data[0].map((c) => c.split('::')[1])
 
@@ -73,9 +74,12 @@ export function getFormattedResult(data, columns) {
 						cell = isNaN(cell) ? 0 : cell
 					}
 				}
-				const formatOption = _columns[idx]?.format_option
-				if (formatOption) {
-					cell = applyColumnFormatOption(formatOption, cell)
+				if (FIELDTYPES.DATE.includes(columnType)) {
+					// only use format options for dates
+					const formatOption = _columns[idx]?.format_option
+					if (formatOption) {
+						cell = applyColumnFormatOption(safeJSONParse(formatOption), cell)
+					}
 				}
 				return cell
 			})

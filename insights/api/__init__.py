@@ -110,17 +110,21 @@ def get_queries():
     frappe.has_permission("Insights Query", throw=True)
     Query = frappe.qb.DocType("Insights Query")
     QueryTable = frappe.qb.DocType("Insights Query Table")
+    QueryChart = frappe.qb.DocType("Insights Query Chart")
     GroupConcat = CustomFunction("Group_Concat", ["column"])
     return (
         frappe.qb.from_(Query)
         .left_join(QueryTable)
         .on(Query.name == QueryTable.parent)
+        .left_join(QueryChart)
+        .on(QueryChart.query == Query.name)
         .select(
             Query.name,
             Query.title,
             GroupConcat(QueryTable.label).as_("tables"),
             Query.data_source,
             Query.modified,
+            QueryChart.type.as_("chart_type"),
         )
         .groupby(Query.name)
         .orderby(Query.modified, order=frappe.qb.desc)
@@ -151,21 +155,6 @@ def get_running_jobs(data_source):
 @frappe.whitelist()
 def kill_running_job(data_source, query_id):
     return
-
-
-@frappe.whitelist()
-def update_user_default(key, value):
-    keys = ["hide_sidebar"]
-    if key not in keys:
-        return
-    frappe.defaults.set_user_default(key, value)
-
-
-@frappe.whitelist()
-def get_user_defaults():
-    defaults = frappe.defaults.get_defaults()
-    keys = ["hide_sidebar"]
-    return {key: defaults.get(key) for key in keys}
 
 
 @frappe.whitelist()

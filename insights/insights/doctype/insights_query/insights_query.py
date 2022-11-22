@@ -31,6 +31,7 @@ class InsightsQueryValidation:
         self.validate_tables()
         self.validate_limit()
         self.validate_filters()
+        self.validate_columns()
 
     def validate_tables(self):
         for row in self.tables:
@@ -58,6 +59,16 @@ class InsightsQueryValidation:
     def validate_filters(self):
         if not self.filters:
             self.filters = DEFAULT_FILTERS
+
+    def validate_columns(self):
+        if frappe.flags.in_test:
+            return
+        # check if no duplicate labelled columns
+        labels = []
+        for row in self.columns:
+            if row.label and row.label in labels:
+                frappe.throw(f"Duplicate Column {row.label}")
+            labels.append(row.label)
 
 
 class InsightsQuery(InsightsQueryValidation, InsightsQueryClient, Document):
@@ -92,11 +103,19 @@ class InsightsQuery(InsightsQueryValidation, InsightsQueryClient, Document):
             self.sql = query
             self.status = "Pending Execution"
 
-    def build_and_execute(self):
-        start = time.time()
+    def fetch_results(self):
         results = list(self._data_source.run_query(query=self))
         columns = [f"{c.label or c.column}::{c.type}" for c in self.get_columns()]
         results.insert(0, columns)
+        if self.transforms:
+            results = self.apply_transform(results)
+        if self.has_cumulative_columns():
+            results = self.apply_cumulative_sum(results)
+        return results
+
+    def build_and_execute(self):
+        start = time.time()
+        results = self.fetch_results()
         self.execution_time = flt(time.time() - start, 3)
         self.last_execution = frappe.utils.now()
         self.result = dumps(results, default=cstr)
@@ -106,9 +125,7 @@ class InsightsQuery(InsightsQueryValidation, InsightsQueryClient, Document):
         filters = frappe.parse_json(self.filters)
         filters.conditions.extend(filter_conditions)
         self.filters = dumps(filters, indent=2)
-        results = list(self._data_source.run_query(query=self))
-        columns = [f"{c.label or c.column}::{c.type}" for c in self.get_columns()]
-        results.insert(0, columns)
+        results = self.fetch_results()
         return results
 
     def create_default_chart(self):
@@ -169,6 +186,84 @@ class InsightsQuery(InsightsQueryValidation, InsightsQueryClient, Document):
 
     def load_result(self):
         return frappe.parse_json(self.result)
+
+    def apply_transform(self, results):
+        from pandas import DataFrame
+
+        for row in self.transforms:
+            if row.type == "Pivot":
+                result = frappe.parse_json(results)
+                options = frappe.parse_json(row.options)
+
+                pivot_column = next(
+                    (c for c in self.columns if c.column == options.column), None
+                )
+                index_column = next(
+                    (c for c in self.columns if c.column == options.index), None
+                )
+                value_column = next(
+                    (c for c in self.columns if c.column == options.value), None
+                )
+
+                if not (pivot_column and index_column and value_column):
+                    frappe.throw("Invalid Pivot Options")
+
+                results_df = DataFrame(
+                    result[1:], columns=[d.split("::")[0] for d in result[0]]
+                )
+
+                pivot_column_values = results_df[pivot_column.label]
+                index_column_values = results_df[index_column.label]
+                value_column_values = results_df[value_column.label]
+
+                # make a dataframe for pivot table
+                pivot_df = DataFrame(
+                    {
+                        index_column.label: index_column_values,
+                        pivot_column.label: pivot_column_values,
+                        value_column.label: value_column_values,
+                    }
+                )
+
+                pivoted = pivot_df.pivot_table(
+                    index=[pivot_df.columns[0]],
+                    columns=[pivot_df.columns[1]],
+                    values=[pivot_df.columns[2]],
+                    aggfunc="sum",
+                )
+
+                pivoted.columns = pivoted.columns.droplevel(0)
+                pivoted = pivoted.reset_index()
+                pivoted.columns.name = None
+                pivoted = pivoted.fillna(0)
+
+                cols = pivoted.columns.to_list()
+                cols = [f"{cols[0]}::{index_column.type}"] + [
+                    f"{c}::{value_column.type}" for c in cols[1:]
+                ]
+                data = pivoted.values.tolist()
+
+                return [cols] + data
+
+    def has_cumulative_columns(self):
+        return any(
+            col.aggregation and "Cumulative" in col.aggregation
+            for col in self.get_columns()
+        )
+
+    def apply_cumulative_sum(self, results):
+        from pandas import DataFrame
+
+        result = frappe.parse_json(results)
+        results_df = DataFrame(
+            result[1:], columns=[d.split("::")[0] for d in result[0]]
+        )
+
+        for column in self.columns:
+            if "Cumulative" in column.aggregation:
+                results_df[column.label] = results_df[column.label].cumsum()
+
+        return [result[0]] + results_df.values.tolist()
 
 
 def format_query(query):
